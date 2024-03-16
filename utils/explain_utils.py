@@ -8,8 +8,8 @@ def calculate_ifc(feature_blocks):
     for i in range(num_blocks):
         for j in range(num_blocks):
             if i != j:
-                original_block = torch.tensor(feature_blocks[i])
-                distorted_block = torch.tensor(feature_blocks[j])
+                original_block = feature_blocks[i].clone().detach()
+                distorted_block = feature_blocks[j].clone().detach()
 
                 # Calculate mean and standard deviation for each channel
                 original_mean = torch.mean(original_block, dim=(0, 1))
@@ -25,3 +25,6 @@ def calculate_ifc(feature_blocks):
                 ifc_scores[i, j] = ifc_score
 
     return ifc_scores
+
+
+
