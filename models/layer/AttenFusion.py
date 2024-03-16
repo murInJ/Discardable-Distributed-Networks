@@ -1,3 +1,4 @@
+import math
 import os
 import random
 
@@ -31,12 +32,14 @@ class AttenFusion(nn.Module):
                     flat = self.flatten(feat)
                     mu = torch.mean(flat, 0)
                     log_var = torch.log(torch.var(flat, 0))
-                    self.infoMin_loss += InfoMin_loss(mu, log_var)
+                    l = InfoMin_loss(mu, log_var)
+                    if l != math.inf:
+                        self.infoMin_loss += l
         x = feature
         # attention
         x = self.conv1(x)
         x = self.attenBlock(x)
-
+        assert self.infoMin_loss != math.inf
         return x
 
     def save_onnx_model(self, input_sample, dir_path):

@@ -1,3 +1,4 @@
+import math
 import os.path
 
 import torch
@@ -38,7 +39,8 @@ class DiscardableDistributedBlock(nn.Module):
                 feature2 = F.interpolate(x, size=(W1, H1), mode='bilinear', align_corners=False)
                 feature2 = self.infoConv(feature2)
                 self.infoMax_loss += InfoMax_loss(self.flatten(feature), self.flatten(feature2))
-
+        assert self.infoMax_loss != math.inf
+        assert self.infoMin_loss != math.inf
         return x
 
     def drop_forward(self, x, drop_prob):
@@ -48,13 +50,13 @@ class DiscardableDistributedBlock(nn.Module):
         return x
 
     def save_onnx_model(self, input_sample, dir_path):
+        self.eval()
         create_directory_if_not_exists(dir_path)
         infer_map = {}
 
         # save expandLayer
         expandLayer_path = os.path.join(dir_path, "expandLayer")
         infer_map['input'] = [expandLayer_path]
-        self.expandLayer.eval()
         self.expandLayer.save_onnx_model(input_sample,expandLayer_path)
 
         # save fusion

@@ -49,12 +49,12 @@ class ExpandLayer(nn.Module):
         return feature
 
     def save_onnx_model(self, input_sample, dir_path):
+        self.eval()
         create_directory_if_not_exists(dir_path)
         infer_map = {}
         features = torch.chunk(input_sample, self.groups, dim=1)
         # save block
         feature = []
-        self.blocks.eval()
         for i in range(len(self.blocks)):
             block_path = os.path.join(dir_path, f"block{i}.onnx")
             infer_map["input"] = [block_path]

@@ -1,3 +1,4 @@
+import math
 import os.path
 
 import torch.onnx
@@ -44,6 +45,8 @@ class DDN(nn.Module):
                 self.infoMin_loss += self.DDBlock[i].infoMin_loss
                 self.infoMax_loss += self.DDBlock[i].infoMax_loss
         x = self.head(x)
+        assert self.infoMax_loss != math.inf
+        assert self.infoMin_loss != math.inf
         return x
 
     def drop_forward(self, x, drop_List=[0.3, 0.6, 0.9]):
@@ -54,19 +57,17 @@ class DDN(nn.Module):
         return x
 
     def save_onnx_model(self, input_sample, dir_path):
+        self.eval()
         infer_map = {}
         create_directory_if_not_exists(dir_path)
         # save conv1
         conv1_path = os.path.join(dir_path, "conv1.onnx")
         infer_map["input"] = [conv1_path]
-        self.conv1.eval()
         torch.onnx.export(self.conv1, input_sample, conv1_path, export_params=True, opset_version=11,
                           do_constant_folding=True, input_names=['input'], output_names=['output'],
                           dynamic_axes={'input': {0: 'batch_size'}, 'output': {0: 'batch_size'}})
 
         # save DDBlock
-
-        self.DDBlock.eval()
         DDBlock_dir1 = conv1_path
         input_sample = self.conv1(input_sample)
         for i in range(self.l):
