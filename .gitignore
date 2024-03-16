@@ -1,5 +1,8 @@
 .idea/*
 data/*
-log/*
+logs/*
 __pycache__/
 test/*
+save/*
+print/*
+print/explain.ipynb
